@@ -1,0 +1,36 @@
+name: Deploy Mapacy to Hydra
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mapacy-production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build and deploy web service
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - mapacy-deploy
+    timeout-minutes: 15
+    steps:
+      - name: Check out main with read-only repository access
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: main
+          persist-credentials: true
+
+      - name: Rebuild and recreate Mapacy web service
+        env:
+          MAPACY_COMPOSE_FILE: ${{ github.workspace }}/deploy/hydra-compose.yaml
+          MAPACY_COMPOSE_PROJECT_DIR: ${{ github.workspace }}
+        run: ./scripts/deploy-hydra.sh
