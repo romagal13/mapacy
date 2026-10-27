@@ -1,17 +1,15 @@
 # Mapacy
 
-Aplicación web para el Censo Hidrosocial Acaray–Yguazú. La interfaz de mapas parte del HTML entregado; las fichas y el historial se guardan en PostgreSQL fuera del repositorio.
+Aplicación web de mapas dinámicos para la Gestión Hidrosocial en el embalse Acaray y el Censo Hidrosocial Acaray–Yguazú. La interfaz parte del HTML entregado; las fichas y el historial se guardan en PostgreSQL fuera del repositorio.
 
 ## Despliegue en Hydra
 
-El Compose de Hydra incluye `deploy/hydra-compose.yaml`; PostgreSQL 16 queda en el volumen Docker `mapacy-postgres-data`, fuera del repositorio. La carga inicial, las credenciales y la copia del HTML original viven con permisos restringidos en `/home/rodrigo/.local/share/mapacy/`.
+El despliegue usa `deploy/hydra-compose.yaml`. PostgreSQL 16 guarda sus datos en el volumen Docker `mapacy-postgres-data`, fuera del repositorio. La carga inicial, las credenciales y la copia del HTML original se guardan con permisos restringidos en `/home/rodrigo/.local/share/mapacy/`.
 
-La app responde detrás de Nginx en `https://mapacy.romagal.com`; el hostname público del túnel dirige a `http://nginx:80` en la red `docker_network`. Algunos DNS de la red local pueden conservar una respuesta `NXDOMAIN` antigua.
-
-El usuario y la contraseña iniciales están en `credentials.txt` dentro del directorio de datos local, con modo `0600`.
+La aplicación responde en `https://mapacy.romagal.com`. El hostname público del túnel dirige a `http://nginx:80` en la red `docker_network`.
 
 ## Evaluación inicial
 
-El HTML recibido guardaba fichas e historial en `localStorage`, sin acceso autenticado ni sincronización entre dispositivos. El servidor ahora exige login, valida los códigos de ficha, escribe en una transacción PostgreSQL y compara revisiones para detectar cambios concurrentes. La base de datos contiene 295 fichas ficticias de ejemplo, 73 sitios de interés y 77 encuestas de depleción sin nombres ni teléfonos.
+El HTML original guardaba fichas e historial en `localStorage`, sin autenticación ni sincronización entre dispositivos. El servidor ahora requiere login, valida los códigos de ficha, escribe en una transacción PostgreSQL y compara revisiones para detectar cambios concurrentes. La base actual contiene 295 fichas de ejemplo, 73 sitios de interés y 77 encuestas de depleción sin nombres ni teléfonos.
 
-La arquitectura sigue siendo un primer corte: el login usa una sola cuenta compartida; cada guardado reemplaza la lista completa de fichas; escenarios y capas personalizadas siguen en `localStorage`; no hay copias automáticas ni restauraciones ensayadas. Antes de incorporar relevamientos reales recomiendo cuentas y permisos por rol, escrituras por ficha con auditoría inmutable, sincronización de escenarios, migraciones de esquema y backups automáticos verificados. Los límites de intentos de login están aplicados en Nginx.
+La arquitectura todavía usa una sola cuenta compartida, reemplaza la lista completa de fichas en cada guardado y mantiene escenarios y capas personalizadas en `localStorage`. Tampoco hay copias automáticas ni restauraciones ensayadas. Antes de incorporar relevamientos reales conviene agregar cuentas y permisos por rol, escrituras por ficha con auditoría inmutable, sincronización de escenarios, migraciones de esquema y backups automáticos verificados. Los límites de intentos de login se aplican en Nginx.
