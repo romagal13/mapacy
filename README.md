@@ -6,27 +6,17 @@ Aplicación web de mapas dinámicos para la Gestión Hidrosocial en el embalse A
 
 La aplicación responde en `https://mapacy.romagal.com`.
 
-Después de subir cambios a `main`, en Hydra se puede actualizar y recrear solo el servicio web con:
+Después de hacer merge o pull manualmente en Hydra, reconstruye y recrea solo el servicio web con:
 
 ```bash
-./scripts/deploy-hydra.sh
+./scripts/rebuild-hydra-web.sh
 ```
 
-El script requiere un checkout limpio en `main`, descarga únicamente avances fast-forward y espera que el healthcheck del servicio `web` esté saludable. No recrea ni modifica PostgreSQL. Si el Compose de Hydra está en otra ubicación, se puede indicar con `MAPACY_HYDRA_DIR=/ruta/a/hydra`.
+El script usa el código que ya está en el checkout local, espera que el healthcheck del servicio `web` esté saludable y no recrea ni modifica PostgreSQL. Si el Compose de Hydra está en otra ubicación, se puede indicar con `MAPACY_HYDRA_DIR=/ruta/a/hydra`.
 
-### Despliegue automático con GitHub Actions
+### Revisión de cambios en GitHub
 
-El workflow `.github/workflows/deploy-mapacy.yml` despliega al hacer push a `main`. Usa un runner propio de Hydra con la etiqueta `mapacy-deploy`, el checkout con el `GITHUB_TOKEN` de solo lectura y el mismo script. Para registrarlo, en GitHub abre **Settings → Actions → Runners → New self-hosted runner**, elige Linux y x64, sigue las instrucciones para descargar y extraer el runner, y desde ese directorio configura el token temporal que GitHub muestra:
-
-```bash
-read -r -s -p 'Token temporal de registro: ' RUNNER_TOKEN; echo
-./config.sh --url https://github.com/romagal13/mapacy --token "$RUNNER_TOKEN" --name hydra-mapacy --labels mapacy-deploy --unattended
-unset RUNNER_TOKEN
-sudo ./svc.sh install rodrigo
-sudo ./svc.sh start
-```
-
-El runner debe quedar en estado **Idle** en la página de Actions → Runners. El token de registro vence rápidamente y sirve solo para registrar el runner; no lo guardes en el repo. La cuenta `rodrigo` debe tener acceso a Docker. Quien pueda cambiar y ejecutar workflows sobre este runner puede ejecutar código en Hydra, así que concede escritura solo a personas de confianza y protege `main` con revisión antes de fusionar cambios.
+`.github/CODEOWNERS` solicita tu revisión (`@romagal13`) en cada pull request. Activa las notificaciones de pull requests en **Watch → Custom** para recibir avisos. Revisa el PR y haz merge manualmente; luego actualiza el checkout de Hydra y ejecuta `./scripts/rebuild-hydra-web.sh`.
 
 ## Evaluación inicial
 
