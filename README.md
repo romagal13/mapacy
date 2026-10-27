@@ -4,9 +4,7 @@ Aplicación web de mapas dinámicos para la Gestión Hidrosocial en el embalse A
 
 ## Despliegue en Hydra
 
-El despliegue usa `deploy/hydra-compose.yaml`. PostgreSQL 16 guarda sus datos en el volumen Docker `mapacy-postgres-data`, fuera del repositorio. La carga inicial, las credenciales y la copia del HTML original se guardan con permisos restringidos en `/home/rodrigo/.local/share/mapacy/`.
-
-La aplicación responde en `https://mapacy.romagal.com`. El hostname público del túnel dirige a `http://nginx:80` en la red `docker_network`.
+La aplicación responde en `https://mapacy.romagal.com`.
 
 ## Evaluación inicial
 
