@@ -1,25 +1,29 @@
 # Mapacy
 
-Aplicación web de mapas dinámicos para la Gestión Hidrosocial en el embalse Acaray y el Censo Hidrosocial Acaray–Yguazú. La interfaz parte del HTML entregado; las fichas y el historial se guardan en PostgreSQL fuera del repositorio.
+Aplicación web de mapas dinámicos para la Gestión Hidrosocial en el embalse Acaray y el Censo Hidrosocial Acaray–Yguazú. La interfaz nueva adapta el prototipo de [Camilo Caballero Ocariz](https://github.com/camilojco/hidosocioacy).
 
-## Despliegue en Hydra
+## Aplicación y datos
 
-La aplicación responde en `https://mapacy.romagal.com`.
+- `app.py` ofrece login, API y persistencia central en PostgreSQL.
+- `fuente/app_template.html` contiene la interfaz, incluidos escenarios de agua e hidrología.
+- `datos/` contiene cartografía y series hidrometeorológicas de demostración. Las series hidrológicas de ejemplo son simuladas.
+- `static/index.html` es la página generada que sirve Flask. Generala con `python3 scripts/build-mapacy-web.py`.
 
-Después de hacer merge o pull manualmente en Hydra, reconstruye y recrea solo el servicio web con:
+Las fichas y el historial se consultan por API solo después de iniciar sesión. Los arrays `SAMPLE`, `SITES` y `SURVEYS` se dejan vacíos en el HTML generado. Los datos de fichas, sitios y encuestas iniciales permanecen en la base PostgreSQL y en los archivos privados fuera del repo bajo `/home/rodrigo/.local/share/mapacy/`; no copies esos archivos ni los datos personales al repositorio público. La base inicial contiene 295 fichas de ejemplo, 73 sitios de interés y 77 encuestas de depleción, sin nombres ni teléfonos.
+
+Los escenarios personalizados y las series cargadas desde la interfaz siguen guardándose en `localStorage` de cada navegador. Los sitios y encuestas se comparten mediante PostgreSQL.
+
+## Actualizar Hydra
+
+Los cambios se revisan y se fusionan manualmente en GitHub. En Hydra, tras hacer pull, reconstruye y recrea solamente la web:
 
 ```bash
+cd ~/projects/mapacy
+git pull --ff-only origin main
+python3 scripts/build-mapacy-web.py
 ./scripts/rebuild-hydra-web.sh
 ```
 
-El script usa el código que ya está en el checkout local, espera que el healthcheck del servicio `web` esté saludable y no recrea ni modifica PostgreSQL. Si el Compose de Hydra está en otra ubicación, se puede indicar con `MAPACY_HYDRA_DIR=/ruta/a/hydra`.
+El script de reconstrucción espera el healthcheck de `web` y no recrea ni modifica el servicio de base de datos. La aplicación responde en `https://mapacy.romagal.com`.
 
-### Revisión de cambios en GitHub
-
-`.github/CODEOWNERS` solicita tu revisión (`@romagal13`) en cada pull request. Activa las notificaciones de pull requests en **Watch → Custom** para recibir avisos. Revisa el PR y haz merge manualmente; luego actualiza el checkout de Hydra y ejecuta `./scripts/rebuild-hydra-web.sh`.
-
-## Evaluación inicial
-
-El HTML original guardaba fichas e historial en `localStorage`, sin autenticación ni sincronización entre dispositivos. El servidor ahora requiere login, valida los códigos de ficha, escribe en una transacción PostgreSQL y compara revisiones para detectar cambios concurrentes. La base actual contiene 295 fichas de ejemplo, 73 sitios de interés y 77 encuestas de depleción sin nombres ni teléfonos.
-
-La arquitectura todavía usa una sola cuenta compartida, reemplaza la lista completa de fichas en cada guardado y mantiene escenarios y capas personalizadas en `localStorage`. Tampoco hay copias automáticas ni restauraciones ensayadas. Antes de incorporar relevamientos reales conviene agregar cuentas y permisos por rol, escrituras por ficha con auditoría inmutable, sincronización de escenarios, migraciones de esquema y backups automáticos verificados. Los límites de intentos de login se aplican en Nginx.
+`.github/CODEOWNERS` solicita una revisión de `@romagal13` en cada pull request. Para recibir avisos, activa **Watch → Custom → Pull requests** en GitHub y exige pull requests antes de permitir cambios a `main`.
